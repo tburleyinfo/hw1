@@ -1,5 +1,5 @@
 import random
-import tkinter as tk
+import tkinter as tk, tkinter.font as tkfont
 
 class Uniform(object):
     """Barebones example of a language model class."""
@@ -10,7 +10,7 @@ class Uniform(object):
     def train(self, filename):
         """Train the model on a text file."""
         for line in open(filename):
-            for w in line:
+            for w in line.rstrip('\n'):
                 self.vocab.add(w)
 
     # The following two methods make the model work like a finite
@@ -41,10 +41,10 @@ class Application(tk.Frame):
         self.model = model
 
         tk.Frame.__init__(self, master)
-        self.pack()
+        self.pack(fill="both", expand=1)
 
-        self.INPUT = tk.Text(self)
-        self.INPUT.pack()
+        self.INPUT = tk.Text(self, height=1)
+        self.INPUT.pack(fill="both", expand=1)
 
         self.chars = ['qwertyuiop',
                       'asdfghjkl',
@@ -56,9 +56,10 @@ class Application(tk.Frame):
             r = tk.Frame(self.KEYS)
             for w in row:
                 # trick to make button sized in pixels
-                f = tk.Frame(r, height=32)
+                f = tk.Frame(r, height=30)
                 b = tk.Button(f, text=w, command=lambda w=w: self.press(w))
                 b.pack(fill=tk.BOTH, expand=1)
+                b.pack()
                 f.pack(side=tk.LEFT)
                 f.pack_propagate(False)
             r.pack()
@@ -88,10 +89,9 @@ class Application(tk.Frame):
 
     def resize_keys(self):
         for bs, ws in zip(self.KEYS.winfo_children(), self.chars):
-            wds = [150*self.model.prob(w)+15 for w in ws]
-            wds = [int(wd+0.5) for wd in wds]
-
-            for b, wd in zip(bs.winfo_children(), wds):
+            for b, w in zip(bs.winfo_children(), ws):
+                wd = 150*self.model.prob(w)+30
+                wd = int(wd+0.5)
                 b.config(width=wd)
 
     def press(self, w):
@@ -99,6 +99,7 @@ class Application(tk.Frame):
         self.INPUT.see(tk.END)
         self.model.read(w)
         self.resize_keys()
+        root.update()
 
     def best(self):
         _, w = max((p, w) for (w, p) in self.model.probs().items())
@@ -127,10 +128,12 @@ if __name__ == "__main__":
 
     ##### Replace this line with an instantiation of your model #####
     m = Uniform()
+    
     m.train(args.train)
     m.start()
 
     root = tk.Tk()
+    root.minsize(width=450, height=450)
     app = Application(m, master=root)
     app.mainloop()
     root.destroy()
