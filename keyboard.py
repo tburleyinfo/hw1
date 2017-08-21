@@ -1,41 +1,6 @@
 import random
 import tkinter as tk, tkinter.font as tkfont
 
-class Uniform(object):
-    """Barebones example of a language model class."""
-
-    def __init__(self):
-        self.vocab = set()
-
-    def train(self, filename):
-        """Train the model on a text file."""
-        for line in open(filename):
-            for w in line.rstrip('\n'):
-                self.vocab.add(w)
-
-    # The following two methods make the model work like a finite
-    # automaton.
-
-    def start(self):
-        """Resets the state."""
-        pass
-
-    def read(self, w):
-        """Reads in character w, updating the state."""
-        pass
-
-    # The following two methods add probabilities to the finite automaton.
-
-    def prob(self, w):
-        """Returns the probability of the next character being w given the
-        current state."""
-        return 1/(len(self.vocab)+1) # +1 for <unk>
-
-    def probs(self):
-        """Returns a dict mapping from all characters in the vocabulary to the
-probabilities of each character."""
-        return {w: self.prob(w) for w in self.vocab}
-
 class Application(tk.Frame):
     def __init__(self, model, master=None):
         self.model = model
@@ -88,9 +53,15 @@ class Application(tk.Frame):
         self.resize_keys()
 
     def resize_keys(self):
+        p = {}
+        for row in self.chars:
+            for w in row:
+                p[w] = self.model.prob(w)
+        z = sum(p.values())
+
         for bs, ws in zip(self.KEYS.winfo_children(), self.chars):
             for b, w in zip(bs.winfo_children(), ws):
-                wd = 150*self.model.prob(w)+30
+                wd = 500*p[w]/z+30
                 wd = int(wd+0.5)
                 b.config(width=wd)
 
@@ -102,38 +73,44 @@ class Application(tk.Frame):
         root.update()
 
     def best(self):
-        _, w = max((p, w) for (w, p) in self.model.probs().items())
+        _, w = max((self.model.prob(w), w) for row in self.chars for w in row)
         self.press(w)
 
     def worst(self):
-        _, w = min((p, w) for (w, p) in self.model.probs().items())
+        _, w = min((self.model.prob(w), w) for row in self.chars for w in row)
         self.press(w)
 
     def random(self):
+        p = {}
+        for row in self.chars:
+            for w in row:
+                p[w] = self.model.prob(w)
+        z = sum(p.values())
+
         s = 0.
         r = random.random()
-        p = self.model.probs()
         for w in p:
-            s += p[w]
+            s += p[w]/z
             if s > r:
                 break
         self.press(w)
 
 if __name__ == "__main__":
     import argparse
+    import unigram
 
     parser = argparse.ArgumentParser()
     parser.add_argument(dest='train')
     args = parser.parse_args()
 
     ##### Replace this line with an instantiation of your model #####
-    m = Uniform()
+    m = unigram.Unigram()
     
     m.train(args.train)
     m.start()
 
     root = tk.Tk()
-    root.minsize(width=450, height=450)
+    root.minsize(width=800, height=400)
     app = Application(m, master=root)
     app.mainloop()
     root.destroy()
