@@ -9,6 +9,7 @@ class Application(tk.Frame):
         self.pack(fill="both", expand=1)
 
         self.INPUT = tk.Text(self, height=1)
+        self.INPUT.bind("<Key>", self.handle_key)
         self.INPUT.pack(fill="both", expand=1)
 
         self.chars = ['qwertyuiop',
@@ -64,6 +65,10 @@ class Application(tk.Frame):
                 wd = 500*p[w]/z+30
                 wd = int(wd+0.5)
                 b.config(width=wd)
+                
+    def handle_key(self, event):
+        self.press(event.char)
+        return "break"
 
     def press(self, w):
         self.INPUT.insert(tk.END, w)
