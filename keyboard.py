@@ -4,6 +4,7 @@ import tkinter as tk, tkinter.font as tkfont
 class Application(tk.Frame):
     def __init__(self, model, master=None):
         self.model = model
+        self.state = model.get_start()
 
         tk.Frame.__init__(self, master)
         self.pack(fill="both", expand=1)
@@ -56,13 +57,20 @@ class Application(tk.Frame):
     def resize_keys(self):
         p = {}
         for row in self.chars:
-            for w in row:
-                p[w] = self.model.prob(w)
+            for a in row:
+                ts = self.model.get_transitions(self.state, a)
+                if len(ts) == 0:
+                    pass
+                elif len(ts) == 1:
+                    [t] = ts
+                    p[a] = self.model.get_prob(t)
+                else:
+                    raise ValueError("FST is not deterministic")
         z = sum(p.values())
 
         for bs, ws in zip(self.KEYS.winfo_children(), self.chars):
             for b, w in zip(bs.winfo_children(), ws):
-                wd = 500*p[w]/z+30
+                wd = 500*p.get(w,0)/z+30
                 wd = int(wd+0.5)
                 b.config(width=wd)
                 
@@ -71,25 +79,46 @@ class Application(tk.Frame):
         return "break"
 
     def press(self, w):
-        self.INPUT.insert(tk.END, w)
-        self.INPUT.see(tk.END)
-        self.model.read(w)
-        self.resize_keys()
-        root.update()
+        ts = self.model.get_transitions(self.state, w)
+        if len(ts) == 0:
+            # Automaton rejected keypress; do nothing
+            pass
+        elif len(ts) == 1:
+            [t] = ts
+            self.state = t.r
+            self.INPUT.insert(tk.END, w)
+            self.INPUT.see(tk.END)
+            self.resize_keys()
+            root.update()
+        else:
+            raise ValueError("FST is not deterministic")
 
-    def best(self):
-        _, w = max((self.model.prob(w), w) for row in self.chars for w in row)
-        self.press(w)
-
-    def worst(self):
-        _, w = min((self.model.prob(w), w) for row in self.chars for w in row)
-        self.press(w)
-
-    def random(self):
+    def probs(self):
         p = {}
         for row in self.chars:
             for w in row:
-                p[w] = self.model.prob(w)
+                ts = self.model.get_transitions(self.state, w)
+                if len(ts) == 0:
+                    p[w] = 0.
+                elif len(ts) == 1:
+                    [t] = ts
+                    p[w] = self.model.get_prob(t)
+                else:
+                    raise ValueError("FST is not deterministic")
+        return p
+        
+    def best(self):
+        p = self.probs()
+        w = max(p, key=p.get)
+        self.press(w)
+
+    def worst(self):
+        p = self.probs()
+        w = min(p, key=p.get)
+        self.press(w)
+
+    def random(self):
+        p = self.probs()
         z = sum(p.values())
 
         s = 0.
@@ -103,17 +132,15 @@ class Application(tk.Frame):
 if __name__ == "__main__":
     import argparse
     import unigram
+    #import ngram
 
     parser = argparse.ArgumentParser()
     parser.add_argument(dest='train')
     args = parser.parse_args()
 
     ##### Replace this line with an instantiation of your model #####
-    m = unigram.Unigram()
+    m = unigram.Unigram(open(args.train))
     
-    m.train(args.train)
-    m.start()
-
     root = tk.Tk()
     root.minsize(width=800, height=400)
     app = Application(m, master=root)
