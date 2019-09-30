@@ -273,12 +273,12 @@ def compose(m1, m2):
                     t = Transition(q, t1.a, t2.b, (t1.r, t2.r))
                     add_transition(t, t1, t2)
             
-        for t in mtq1.get(EPSILON, []):
-            m1_deletes = True
+        for t1 in mtq1.get(EPSILON, []):
+            m1_Deletes = True
             t = Transition(q, t1.a, EPSILON, (t1.r, q2))
             add_transition(t, t1, None)
 
-        for t in mtq2.get(EPSILON, []):
+        for t2 in mtq2.get(EPSILON, []):
             m2_inserts = True
             t = Transition(q, EPSILON, t2.b, (q1, t2.r))
             add_transition(t, None, t2)
@@ -289,3 +289,30 @@ def compose(m1, m2):
         raise NotImplementedError("I can't compose a deleting FST with an inserting FST")
     
     return m
+
+def topological_sort(m):
+    """Topologically sort the states of m. Returns a list `o` of states
+    such that if `i < j`, then there is no path from `o[j]` to `o[i]`.
+    If there is no such ordering, an exception is raised.
+    """
+    # https://en.wikipedia.org/wiki/Topological_sorting#Depth-first_search
+    order = []
+    visited = set()
+    path = set()
+    def visit(q):
+        if q in visited:
+            return
+        if q in path:
+            raise ValueError("m must be acyclic")
+        path.add(q)
+        for a, ts in m.transitions[q].items():
+            for t in ts:
+                visit(t.r)
+        path.remove(q)
+        visited.add(q)
+        order.append(q)
+    visit(m.start)
+    order.reverse()
+    return order
+
+    
