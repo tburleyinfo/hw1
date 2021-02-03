@@ -1,30 +1,39 @@
-import fst
+import collections
+import math
 
-class Unigram(fst.FST):
+class Unigram:
     """A unigram language model.
 
-    data: a list of lists of symbols. They should not contain `</s>`;
-          the `</s>` symbol is automatically appended during
+    data: a list of lists of symbols. They should not contain `<EOS>`;
+          the `<EOS>` symbol is automatically appended during
           training.
     """
     
     def __init__(self, data):
-        super().__init__()
+        self.count = collections.Counter()
+        self.total = 0
+        for line in data:
+            for a in list(line) + ['<EOS>']:
+                self.count[a] += 1
+                self.total += 1
+
+    def start(self):
+        """Return the language model's start state. (A unigram model doesn't
+        have state, so it's just `None`."""
         
-        # Our states are 0 and 1. In general, a state can be any hashable
-        # object: for example, an int, a str, or a tuple.
-        self.set_start(0)
-        self.set_accept(1)
+        return None
 
-        # Create the transitions.
-        for words in data:
-            for a in words:
-                self.add_transition(fst.Transition(0, a, a, 0))
-        self.add_transition(fst.Transition(0, fst.STOP, fst.STOP, 1))
+    def read(self, q, a):
+        """Return the state that the model would be in if it's in state `q`
+        and reads symbol `a`. (Again, a unigram model doesn't have state, so
+        this just returns `None`.)"""
+        
+        return None
 
-        # The FST automatically builds a dict of counts; convert them to
-        # probabilities.
-        self.probs = fst.estimate_joint(self.counts)
-
-    def get_prob(self, t):
-        return self.probs[t]
+    def predict(self, q):
+        """Return the probablity distribution over the next symbol, as a dict
+        whose keys are symbols (as strs) and whose values are log-probabilities
+        (as floats)."""
+        
+        return {a:math.log(self.count[a]/self.total) for a in self.count}
+    
