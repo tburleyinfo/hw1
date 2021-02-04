@@ -21,6 +21,7 @@ def getline(prompt=''):
     print(prompt, end='', flush=True)
     states = [lm.start()]
     chars = []
+    prediction = ''
 
     def erase():
         if len(prediction) > 0:
@@ -29,11 +30,11 @@ def getline(prompt=''):
     while True:
         
         # Make prediction
+        erase()
         prediction = []
         q = states[-1]
         for i in range(20):
-            probs = lm.predict(q)
-            c = max(probs.keys(), key=probs.get)
+            c = lm.best(q)
             if c == '<EOS>':
                 break
             prediction.append(c)

@@ -30,10 +30,11 @@ class Unigram:
         
         return None
 
-    def predict(self, q):
-        """Return the probablity distribution over the next symbol, as a dict
-        whose keys are symbols (as strs) and whose values are log-probabilities
-        (as floats)."""
-        
-        return {a:math.log(self.count[a]/self.total) for a in self.count}
-    
+    def logprob(self, q, a):
+        """Return the log-probability of `a` when the model is in state `q`."""
+        return math.log(self.count[a]/self.total)
+
+    def best(self, q):
+        """Return the symbol with highest probability when the model is in 
+        state `q`."""
+        return max(self.count, key=self.count.get)
