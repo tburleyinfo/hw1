@@ -1,7 +1,7 @@
 ## CSE 40657/60657
 # Homework 1
 
-Please see http://www.nd.edu/~dchiang/teaching/nlp/hw1.html for instructions.
+Please see http://www.nd.edu/~dchiang/teaching/nlp/2021/hw1.html for instructions.
 
 Data source:
 
