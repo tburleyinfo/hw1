@@ -87,6 +87,20 @@ if __name__ == "__main__":
 
     ##### Replace this line with an instantiation of your model #####
     lm = unigram.Unigram(data)
+    
+    
+
+    #Train Model
+    m = unigram.Unigram(data)
+    q = m.start()
+
+    with open("data/dev", "r") as f: 
+        dev = [list(line.rstrip()) for line in f]
+
+    #Use the Dev Data as the states to predict. 
+    for a in dev:
+        q = m.read(q, a)
+
 
     while True:
         try:
