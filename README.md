@@ -1,6 +1,29 @@
 ## CSE 40657/60657
 # Homework 1
 
+
+# Pt1. 
+`try.py` implements the unigram library and tries to predict the most probable character. 
+
+Use `python3 try.py data/train` to train and report accuracy. 
+
+# Pt2. 
+`ngramLocal.py` is the library that contains modified unigram API for a five-gram LM. 
+
+`ngramTest.py` implements the `ngramLocal` library and tries to predict the most probable character given state q, a four-gram. 
+
+Use `python3 ngramTest.py data/train` to train and report accuracy. 
+
+
+# Pt3. 
+
+I'm still working on that atm...
+I have the torch version and the keras version. Its likely not going to be ready by five today. 
+
+
+
+
+
 Please see http://www.nd.edu/~dchiang/teaching/nlp/2021/hw1.html for instructions.
 
 Data source:
