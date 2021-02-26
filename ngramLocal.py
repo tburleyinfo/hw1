@@ -45,14 +45,14 @@ class ngram:
         """Return the log-probability of `a` when the model is in state `q`."""
         
         #prob(q, a) = count(q + a)/count(q)
-        vocab = len(set(line for line in count))
+        vocab = len(set(line for line in self.count))
 
         delta = .01
-        prob = self.count[(q[0], q[1], q[2], q[3], a)]+delta/(vocab*delta)+self.count(q)
+        prob = self.count[(q[0], q[1], q[2], q[3], a)]+delta/(vocab*delta)+self.count[q]
         return math.log(prob)
 
 
-    def best(self, q):
+    def best(self, q, a):
         """Return the symbol with highest probability when the model is in 
         state `q`."""
         return max(self.count, key=self.count.get)
